@@ -41,5 +41,8 @@
   },
   "overrides": {
     "react-helmet-async": "^2.0.5"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.28.1"
   }
 }
