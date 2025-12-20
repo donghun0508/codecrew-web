@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Code2, Menu, X } from 'lucide-react'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -30,8 +31,12 @@ export default function Navbar() {
 
           {/* CTA Button */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="ghost">Sign In</Button>
-            <Button>Get Started</Button>
+            <Link to="/signin">
+              <Button variant="ghost">로그인</Button>
+            </Link>
+            <Link to="/signin">
+              <Button>회원가입</Button>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -56,8 +61,12 @@ export default function Navbar() {
               Community
             </a>
             <div className="flex flex-col space-y-2 pt-4">
-              <Button variant="ghost" className="w-full">Sign In</Button>
-              <Button className="w-full">Get Started</Button>
+              <Link to="/signin">
+                <Button variant="ghost" className="w-full">로그인</Button>
+              </Link>
+              <Link to="/signin">
+                <Button className="w-full">회원가입</Button>
+              </Link>
             </div>
           </div>
         )}
