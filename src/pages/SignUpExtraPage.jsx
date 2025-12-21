@@ -1,15 +1,30 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Code2 } from "lucide-react";
+import confetti from "canvas-confetti";
+import toast from "react-hot-toast";
 import { authApi, memberApi } from "../api/auth";
 import { validateNickname } from "../lib/utils/validation";
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from "../lib/constants/messages";
 import Spinner from "../components/common/Spinner";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function SignUpExtraPage() {
   const [nickname, setNickname] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
+
+  const fireConfetti = () => {
+    confetti({
+      particleCount: 250,
+      spread: 180,
+      startVelocity: 35,
+      scalar: 1.2,
+      origin: { y: 0.6 },
+      colors: ["#3b82f6", "#6366f1", "#8b5cf6"],
+    });
+  };
 
   const onChange = (e) => {
     setNickname(e.target.value);
@@ -19,7 +34,7 @@ export default function SignUpExtraPage() {
     // 1. 유효성 검사
     const error = validateNickname(nickname);
     if (error) {
-      alert(error);
+      toast.error(error);
       return;
     }
 
@@ -29,14 +44,14 @@ export default function SignUpExtraPage() {
       const isDuplicated = res.data?.data?.duplicated;
 
       if (isDuplicated) {
-        alert(ERROR_MESSAGES.NICKNAME_DUPLICATED);
+        toast.error(ERROR_MESSAGES.NICKNAME_DUPLICATED);
       } else {
-        alert(SUCCESS_MESSAGES.NICKNAME_AVAILABLE);
+        toast.success(SUCCESS_MESSAGES.NICKNAME_AVAILABLE);
       }
     } catch (err) {
       const errorMessage =
         err?.response?.data?.error?.message || ERROR_MESSAGES.CHECK_FAILED;
-      alert(errorMessage);
+      toast.error(errorMessage);
     }
   };
 
@@ -46,14 +61,14 @@ export default function SignUpExtraPage() {
     // 1. 유효성 검사
     const error = validateNickname(nickname);
     if (error) {
-      alert(error);
+      toast.error(error);
       return;
     }
 
     // 2. tempToken 확인
     const tempToken = sessionStorage.getItem("tempToken");
     if (!tempToken) {
-      alert(ERROR_MESSAGES.TOKEN_EXPIRED);
+      toast.error(ERROR_MESSAGES.TOKEN_EXPIRED);
       navigate("/signin");
       return;
     }
@@ -69,24 +84,23 @@ export default function SignUpExtraPage() {
         const me = await memberApi.me(payload.accessToken);
         const memberInfo = me.data?.data;
 
-        // 5. localStorage 저장
-        localStorage.setItem("accessToken", payload.accessToken);
-        localStorage.setItem("refreshToken", payload.refreshToken);
-        localStorage.setItem("userInfo", JSON.stringify(memberInfo));
+        // 5. AuthContext의 login 함수 사용
+        login(payload.accessToken, payload.refreshToken, memberInfo);
 
         // 6. tempToken 제거
         sessionStorage.removeItem("tempToken");
 
-        // 7. 홈으로 이동
-        alert(SUCCESS_MESSAGES.SIGNUP_SUCCESS);
+        // 7. confetti 효과와 함께 홈으로 이동
+        fireConfetti();
+        toast.success(SUCCESS_MESSAGES.SIGNUP_SUCCESS);
         navigate("/");
       } else {
-        alert(ERROR_MESSAGES.SIGNUP_FAILED);
+        toast.error(ERROR_MESSAGES.SIGNUP_FAILED);
       }
     } catch (err) {
       const errorMessage =
         err?.response?.data?.error?.message || ERROR_MESSAGES.SIGNUP_FAILED;
-      alert(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

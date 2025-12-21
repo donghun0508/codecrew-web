@@ -1,6 +1,8 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import { authApi, memberApi } from "../api/auth";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function useOAuthLogin({
   provider,
@@ -10,6 +12,7 @@ export default function useOAuthLogin({
 }) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const { login: authLogin } = useAuth();
 
   const login = useCallback(async () => {
     try {
@@ -34,27 +37,28 @@ export default function useOAuthLogin({
         const me = await memberApi.me(payload.accessToken);
         const memberInfo = me.data.data;
 
-        // 토큰과 사용자 정보를 localStorage에 저장
-        localStorage.setItem("accessToken", payload.accessToken);
-        localStorage.setItem("refreshToken", payload.refreshToken);
-        localStorage.setItem("userInfo", JSON.stringify(memberInfo));
+        // AuthContext의 login 함수 사용
+        authLogin(payload.accessToken, payload.refreshToken, memberInfo);
 
-        alert("로그인 성공!");
+        // tempToken 제거 (혹시 남아있을 경우를 대비)
+        sessionStorage.removeItem("tempToken");
+
+        toast.success("로그인 성공!");
         navigate("/");
         return;
       }
 
-      alert("로그인에 실패했습니다.");
+      toast.error("로그인에 실패했습니다.");
       navigate("/signin");
     } catch (err) {
       console.error("OAuth Login Error:", err);
       const errorMessage = err?.response?.data?.error?.message || "로그인 중 오류가 발생했습니다.";
-      alert(errorMessage);
+      toast.error(errorMessage);
       navigate("/signin");
     } finally {
       setLoading(false);
     }
-  }, [provider, code, nonce, state, navigate]);
+  }, [provider, code, nonce, state, navigate, authLogin]);
 
   return { login, loading };
 }
