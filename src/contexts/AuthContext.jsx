@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useCallback } from "react";
 
 const AuthContext = createContext(null);
 
@@ -16,7 +16,7 @@ export function AuthProvider({ children }) {
 
   const isLoggedIn = !!accessToken;
 
-  const login = (access, refresh, memberInfo) => {
+  const login = useCallback((access, refresh, memberInfo) => {
     localStorage.setItem("accessToken", access);
     localStorage.setItem("refreshToken", refresh);
     localStorage.setItem("userInfo", JSON.stringify(memberInfo));
@@ -24,9 +24,9 @@ export function AuthProvider({ children }) {
     setAccessToken(access);
     setRefreshToken(refresh);
     setUserInfo(memberInfo);
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("userInfo");
@@ -34,7 +34,7 @@ export function AuthProvider({ children }) {
     setRefreshToken(null);
     setUserInfo(null);
     window.location.reload();
-  };
+  }, []);
 
   return (
     <AuthContext.Provider
