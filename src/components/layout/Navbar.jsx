@@ -2,9 +2,12 @@ import { Button } from '@/components/ui/button'
 import { Code2, Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useAuth } from '@/contexts/AuthContext'
+import UserMenu from './UserMenu'
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { isLoggedIn } = useAuth()
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
@@ -31,12 +34,18 @@ export default function Navbar() {
 
           {/* CTA Button */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link to="/signin">
-              <Button variant="ghost">로그인</Button>
-            </Link>
-            <Link to="/signin">
-              <Button>회원가입</Button>
-            </Link>
+            {!isLoggedIn ? (
+              <>
+                <Link to="/signin">
+                  <Button variant="ghost">로그인</Button>
+                </Link>
+                <Link to="/signin">
+                  <Button>회원가입</Button>
+                </Link>
+              </>
+            ) : (
+              <UserMenu />
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -61,12 +70,20 @@ export default function Navbar() {
               Community
             </a>
             <div className="flex flex-col space-y-2 pt-4">
-              <Link to="/signin">
-                <Button variant="ghost" className="w-full">로그인</Button>
-              </Link>
-              <Link to="/signin">
-                <Button className="w-full">회원가입</Button>
-              </Link>
+              {!isLoggedIn ? (
+                <>
+                  <Link to="/signin">
+                    <Button variant="ghost" className="w-full">로그인</Button>
+                  </Link>
+                  <Link to="/signin">
+                    <Button className="w-full">회원가입</Button>
+                  </Link>
+                </>
+              ) : (
+                <div className="flex justify-center">
+                  <UserMenu />
+                </div>
+              )}
             </div>
           </div>
         )}
