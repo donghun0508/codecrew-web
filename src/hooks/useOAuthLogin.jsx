@@ -28,7 +28,7 @@ export default function useOAuthLogin({
       // 신규 유저 - 회원가입 필요
       if (payload?.temporaryToken) {
         sessionStorage.setItem("tempToken", payload.temporaryToken);
-        navigate("/signup-extra");
+        navigate("/signup-extra", { replace: true });
         return;
       }
 
@@ -44,17 +44,17 @@ export default function useOAuthLogin({
         sessionStorage.removeItem("tempToken");
 
         toast.success("로그인 성공!");
-        navigate("/");
+        navigate("/", { replace: true });
         return;
       }
 
       toast.error("로그인에 실패했습니다.");
-      navigate("/signin");
+      navigate("/signin", { replace: true });
     } catch (err) {
       console.error("OAuth Login Error:", err);
       const errorMessage = err?.response?.data?.error?.message || "로그인 중 오류가 발생했습니다.";
       toast.error(errorMessage);
-      navigate("/signin");
+      navigate("/signin", { replace: true });
     } finally {
       setLoading(false);
     }
