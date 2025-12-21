@@ -4,6 +4,9 @@ import {
   NAVER_AUTH_URL,
 } from "../lib/constants/oauth";
 import { Code2 } from "lucide-react";
+import naverIcon from "../assets/social/naver.png";
+import kakaoIcon from "../assets/social/kakao.png";
+import googleIcon from "../assets/social/google.svg";
 
 export default function SignInPage() {
   const generateNonce = () => crypto.randomUUID();
@@ -68,7 +71,7 @@ export default function SignInPage() {
               aria-label="네이버 로그인"
             >
               <img
-                src="/src/assets/social/naver.png"
+                src={naverIcon}
                 alt="naver"
                 className="h-14 w-14 rounded-full"
               />
@@ -81,7 +84,7 @@ export default function SignInPage() {
               aria-label="카카오 로그인"
             >
               <img
-                src="/src/assets/social/kakao.png"
+                src={kakaoIcon}
                 alt="kakao"
                 className="h-14 w-14 rounded-full"
               />
@@ -94,7 +97,7 @@ export default function SignInPage() {
               aria-label="구글 로그인"
             >
               <img
-                src="/src/assets/social/google.svg"
+                src={googleIcon}
                 alt="google"
                 className="h-14 w-14 rounded-full"
               />
