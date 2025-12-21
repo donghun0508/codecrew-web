@@ -4,7 +4,9 @@
       "Bash(npm install:*)",
       "Bash(npx tailwindcss:*)",
       "Bash(npx shadcn@latest add:*)",
-      "Bash(npm config set:*)"
+      "Bash(npm config set:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
