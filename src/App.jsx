@@ -5,6 +5,7 @@ import LandingPage from './pages/LandingPage'
 import SignInPage from './pages/SignInPage'
 import SignUpExtraPage from './pages/SignUpExtraPage'
 import MyPage from './pages/MyPage'
+import YoutubePage from './pages/YoutubePage'
 import GoogleOAuthCallback from './pages/oauth/GoogleOAuthCallback'
 import KakaoOAuthCallback from './pages/oauth/KakaoOAuthCallback'
 import NaverOAuthCallback from './pages/oauth/NaverOAuthCallback'
@@ -16,6 +17,7 @@ function App() {
         <Toaster position="top-center" reverseOrder={false} />
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/youtube" element={<YoutubePage />} />
           <Route path="/signin" element={<SignInPage />} />
           <Route path="/signup-extra" element={<SignUpExtraPage />} />
           <Route path="/mypage" element={<MyPage />} />

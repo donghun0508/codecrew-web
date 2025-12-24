@@ -32,3 +32,13 @@ export const memberApi = {
   checkDuplication: (value) =>
     api.post("/api/v1/members/duplication-check", { value }),
 };
+
+export const youtubeApi = {
+  getVideos: (size = 12, lastVideoId = null) => {
+    const params = { size };
+    if (lastVideoId) {
+      params.lastVideoId = lastVideoId;
+    }
+    return api.get("/api/v1/youtube/videos", { params });
+  },
+};
