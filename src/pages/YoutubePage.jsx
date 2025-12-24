@@ -154,7 +154,7 @@ export default function YoutubePage() {
       <div className="border-b bg-background/95 backdrop-blur-sm sticky top-16 z-40">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {/* Search Bar */}
-          <div className="mb-6">
+          <div className="mb-6 hidden">
             <div className="relative max-w-2xl mx-auto">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <input
