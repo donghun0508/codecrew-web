@@ -1,32 +1,32 @@
-import { Card } from '@/components/ui/card'
-import { Users, Video, Target, Trophy, Sparkles } from 'lucide-react'
+import { Card } from "@/components/ui/card";
+import { Youtube, Users, Rocket, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const features = [
   {
+    icon: Youtube,
+    title: "영상으로 배워요",
+    description: "다양한 채널의 코딩 영상을 한 곳에서",
+    highlights: [
+      "Python, JavaScript, React 등",
+      "초급부터 고급까지",
+      "무료 콘텐츠",
+    ],
+  },
+  {
     icon: Users,
-    title: '세션 관리',
-    description: '공개/비공개 세션 생성, 실시간 참여자 관리, 포모도로 타이머',
-    highlights: ['세션 생성', '필터링 & 검색', '호스트 권한']
+    title: "같이 성장해요",
+    description: "혼자가 아닌 함께, 서로 응원하며 배워요",
+    highlights: ["서로 도우며 성장", "함께하는 코딩", "따뜻한 커뮤니티"],
   },
   {
-    icon: Video,
-    title: '실시간 커뮤니케이션',
-    description: 'WebRTC 기반 화상/음성 통화, 화면 공유, 코드 스니펫 채팅',
-    highlights: ['화상/음성 통화', '화면 공유', '코드 공유']
+    icon: Rocket,
+    title: "곧 만나요",
+    description: "가상 공간에서 실시간으로 함께 코딩할 수 있어요",
+    highlights: ["메타버스 공간", "실시간 협업", "화상 코딩 (Coming Soon)"],
+    comingSoon: true,
   },
-  {
-    icon: Target,
-    title: '개인 활동 관리',
-    description: '목표 설정, 진행 상황 추적, 학습 시간 통계 및 리포트',
-    highlights: ['목표 설정', '활동 기록', '통계 리포트']
-  },
-  {
-    icon: Trophy,
-    title: '커뮤니티 & 업적',
-    description: '업적 시스템, 피드 공유, 스터디 그룹, GitHub 연동',
-    highlights: ['업적 뱃지', '그룹 기능', 'GitHub 연동']
-  }
-]
+];
 
 export default function Features() {
   return (
@@ -35,41 +35,68 @@ export default function Features() {
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold mb-4">
-            개발자를 위한 <span className="text-primary">강력한 기능</span>
+            함께하면{" "}
+            <span className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+              더 즐거워요
+            </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            생산성을 높이고 동기부여를 받을 수 있는 모든 도구를 제공합니다
+            CodeCrew와 함께 소소하게, 하지만 꾸준히 성장해요
           </p>
         </div>
 
         {/* Feature Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {features.map((feature, index) => (
             <Card
               key={index}
-              className="p-8 hover:shadow-xl transition-shadow duration-300 group"
+              className={`p-8 hover:shadow-xl transition-all duration-300 group relative overflow-hidden ${
+                feature.comingSoon
+                  ? "border-2 border-dashed border-primary/50"
+                  : ""
+              }`}
             >
-              <div className="flex items-start gap-6">
-                <div className="p-3 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
-                  <feature.icon className="h-8 w-8 text-primary" />
+              {feature.comingSoon && (
+                <div className="absolute top-4 right-4">
+                  <span className="text-xs font-semibold px-3 py-1 bg-primary/10 text-primary rounded-full border border-primary/20">
+                    Coming Soon
+                  </span>
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-semibold mb-3">{feature.title}</h3>
-                  <p className="text-muted-foreground mb-4">{feature.description}</p>
-                  <ul className="space-y-2">
-                    {feature.highlights.map((highlight, idx) => (
-                      <li key={idx} className="flex items-center gap-2 text-sm">
-                        <Sparkles className="h-4 w-4 text-primary" />
-                        <span>{highlight}</span>
-                      </li>
-                    ))}
-                  </ul>
+              )}
+
+              <div className="text-center">
+                <div className="inline-block p-4 bg-gradient-to-br from-primary/10 to-purple-500/10 rounded-2xl group-hover:scale-110 transition-transform mb-4">
+                  <feature.icon className="h-10 w-10 text-primary" />
                 </div>
+                <h3 className="text-2xl font-semibold mb-3">{feature.title}</h3>
+                <p className="text-muted-foreground mb-6">
+                  {feature.description}
+                </p>
+                <ul className="space-y-3">
+                  {feature.highlights.map((highlight, idx) => (
+                    <li
+                      key={idx}
+                      className="flex items-center justify-center gap-2 text-sm"
+                    >
+                      <Sparkles className="h-4 w-4 text-primary flex-shrink-0" />
+                      <span>{highlight}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </Card>
           ))}
         </div>
+
+        {/* CTA */}
+        {/* <div className="text-center mt-12">
+          <Link to="/youtube">
+            <button className="px-8 py-3 bg-primary text-primary-foreground rounded-full font-semibold hover:opacity-90 transition-opacity">
+              지금 시작하기 →
+            </button>
+          </Link>
+        </div> */}
       </div>
     </section>
-  )
+  );
 }
