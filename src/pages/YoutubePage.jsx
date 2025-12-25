@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Spinner from "@/components/common/Spinner";
-import { Play, Youtube, Search, ArrowUp } from "lucide-react";
+import { Play, Youtube, Search, ArrowUp, AlertCircle } from "lucide-react";
 
 export default function YoutubePage() {
   const [videos, setVideos] = useState([]);
@@ -14,13 +14,15 @@ export default function YoutubePage() {
   const [lastVideoId, setLastVideoId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [error, setError] = useState(null);
   const observerTarget = useRef(null);
 
   const loadVideos = useCallback(async () => {
-    if (loading || !hasNext) return;
+    if (loading || !hasNext || error) return;
 
     try {
       setLoading(true);
+      setError(null);
       const response = await youtubeApi.getVideos(12, lastVideoId);
       const {
         videos: newVideos,
@@ -31,12 +33,18 @@ export default function YoutubePage() {
       setVideos((prev) => [...prev, ...newVideos]);
       setHasNext(nextPage);
       setLastVideoId(nextLastId);
-    } catch (error) {
-      console.error("Failed to load videos:", error);
+    } catch (err) {
+      console.error("Failed to load videos:", err);
+      // 에러 발생 시 재시도하지 않고 에러 상태 설정
+      setError({
+        message: err.response?.data?.error?.message || "영상을 불러오는데 실패했습니다.",
+        status: err.response?.status,
+      });
+      setHasNext(false); // 더 이상 로드하지 않도록
     } finally {
       setLoading(false);
     }
-  }, [loading, hasNext, lastVideoId]);
+  }, [loading, hasNext, lastVideoId, error]);
 
   // 검색 필터링
   const filteredVideos = useMemo(() => {
@@ -188,7 +196,35 @@ export default function YoutubePage() {
       </div>
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
-        {videos.length === 0 && loading ? (
+        {/* 에러 상태 */}
+        {error && videos.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="relative mb-6">
+              <div className="absolute inset-0 bg-red-500 rounded-full blur-xl opacity-20"></div>
+              <div className="relative bg-red-50 p-6 rounded-full border-2 border-red-200">
+                <AlertCircle className="w-16 h-16 text-red-500" />
+              </div>
+            </div>
+            <h3 className="text-2xl font-bold mb-3 text-gray-900">
+              영상을 불러올 수 없습니다
+            </h3>
+            <p className="text-muted-foreground mb-6 text-center max-w-md">
+              {error.message}
+            </p>
+            <button
+              onClick={() => {
+                setError(null);
+                setHasNext(true);
+                setLastVideoId(null);
+                setVideos([]);
+                loadVideos();
+              }}
+              className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
+            >
+              다시 시도
+            </button>
+          </div>
+        ) : videos.length === 0 && loading ? (
           <div className="flex justify-center items-center py-20">
             <Spinner />
           </div>
@@ -200,13 +236,33 @@ export default function YoutubePage() {
               ))}
             </div>
 
-            {hasNext && (
+            {/* 추가 로드 중 에러 표시 */}
+            {error && videos.length > 0 && (
+              <div className="text-center py-8">
+                <div className="inline-flex items-center gap-3 px-6 py-3 bg-red-50 border-2 border-red-200 rounded-lg">
+                  <AlertCircle className="w-5 h-5 text-red-500" />
+                  <span className="text-sm text-red-700">{error.message}</span>
+                  <button
+                    onClick={() => {
+                      setError(null);
+                      setHasNext(true);
+                      loadVideos();
+                    }}
+                    className="ml-2 text-sm font-medium text-red-600 hover:text-red-700 underline"
+                  >
+                    다시 시도
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {hasNext && !error && (
               <div ref={observerTarget} className="flex justify-center py-8">
                 {loading && <Spinner />}
               </div>
             )}
 
-            {!hasNext && videos.length > 0 && !searchQuery && (
+            {!hasNext && videos.length > 0 && !searchQuery && !error && (
               <div className="text-center py-12">
                 <Badge variant="outline" className="text-base px-6 py-2">
                   모든 영상을 불러왔습니다

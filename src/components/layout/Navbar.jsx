@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Code2, Menu, X } from "lucide-react";
+import { Code2, Menu, X, Map } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,6 +30,13 @@ export default function Navbar() {
               >
                 <img src={youtubeIcon} alt="YouTube" className="w-6 h-6" />
                 <span>YouTube</span>
+              </Link>
+              <Link
+                to="/roadmap"
+                className="flex hidden items-center gap-2 text-foreground/80 hover:text-foreground transition-colors"
+              >
+                <Map className="w-5 h-5" />
+                <span>로드맵</span>
               </Link>
             </div>
           </div>
@@ -68,6 +75,13 @@ export default function Navbar() {
             >
               <img src={youtubeIcon} alt="YouTube" className="w-6 h-6" />
               <span>YouTube</span>
+            </Link>
+            <Link
+              to="/roadmap"
+              className="flex items-center gap-2 text-foreground/80 hover:text-foreground transition-colors py-2"
+            >
+              <Map className="w-5 h-5" />
+              <span>로드맵</span>
             </Link>
             <div className="flex flex-col space-y-2 pt-4">
               {!isLoggedIn ? (
