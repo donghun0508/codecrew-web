@@ -53,9 +53,12 @@ const handleLogout = (errorMessage, showToast = true) => {
   localStorage.removeItem("refreshToken");
   localStorage.removeItem("userInfo");
 
-  setTimeout(() => {
-    window.location.href = "/";
-  }, showToast ? 1000 : 0);
+  setTimeout(
+    () => {
+      window.location.href = "/";
+    },
+    showToast ? 1000 : 0
+  );
 };
 
 // Response interceptor: 401 에러 시 토큰 갱신 시도
@@ -78,15 +81,14 @@ api.interceptors.response.use(
 
       // 토큰 갱신 API 자체가 실패한 경우 → 에러 코드별 처리
       if (originalRequest.url?.includes("/api/v1/auth/tokens")) {
-        console.error("토큰 갱신 실패 - 로그아웃:", errorData);
-
         let logoutMessage;
         let showToast = true;
 
         // 에러 코드별 메시지 처리
         if (errorCode === "T002") {
           // INVALID_REFRESH_TOKEN
-          logoutMessage = "비정상적인 로그인 시도가 감지되었습니다. 보안을 위해 로그아웃되었습니다.";
+          logoutMessage =
+            "비정상적인 로그인 시도가 감지되었습니다. 보안을 위해 로그아웃되었습니다.";
         } else if (errorCode === "T003") {
           // TOKEN_INVALID
           logoutMessage = "다시 로그인해주세요.";
@@ -95,7 +97,8 @@ api.interceptors.response.use(
           showToast = false;
           logoutMessage = "인증이 필요합니다.";
         } else {
-          logoutMessage = errorData?.error?.message || "인증 정보가 유효하지 않습니다.";
+          logoutMessage =
+            errorData?.error?.message || "인증 정보가 유효하지 않습니다.";
         }
 
         handleLogout(logoutMessage, showToast);
@@ -128,8 +131,6 @@ api.interceptors.response.use(
           throw new Error("Refresh token not found");
         }
 
-        console.log("토큰 갱신 시도 중...");
-
         // 토큰 갱신 요청
         const response = await api.post("/api/v1/auth/tokens", {
           refreshToken,
@@ -148,8 +149,6 @@ api.interceptors.response.use(
           localStorage.setItem("refreshToken", newRefreshToken);
         }
 
-        console.log("토큰 갱신 성공");
-
         // 대기 중인 요청들에게 새 토큰 전달
         onRefreshed(newAccessToken);
 
@@ -157,8 +156,6 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        console.error("토큰 갱신 실패:", refreshError);
-
         // 갱신 실패 시 모든 대기 중인 요청 거부
         refreshSubscribers = [];
 
