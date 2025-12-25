@@ -76,15 +76,35 @@ api.interceptors.response.use(
         return Promise.reject(error);
       }
 
-      // 토큰 갱신 API 자체가 실패한 경우 (T002) → 로그아웃
+      // 토큰 갱신 API 자체가 실패한 경우 → 에러 코드별 처리
       if (originalRequest.url?.includes("/api/v1/auth/tokens")) {
         console.error("토큰 갱신 실패 - 로그아웃:", errorData);
-        // C006은 초기 로드 시 예상되는 에러이므로 토스트 안 띄움
-        const showToast = errorCode !== "C006";
-        handleLogout(
-          errorData?.error?.message || "인증 정보가 유효하지 않습니다.",
-          showToast
-        );
+
+        let logoutMessage;
+        let showToast = true;
+
+        // 에러 코드별 메시지 처리
+        if (errorCode === "T002") {
+          // INVALID_REFRESH_TOKEN
+          logoutMessage = "비정상적인 로그인 시도가 감지되었습니다. 보안을 위해 로그아웃되었습니다.";
+        } else if (errorCode === "T003") {
+          // TOKEN_INVALID
+          logoutMessage = "다시 로그인해주세요.";
+        } else if (errorCode === "C006") {
+          // 초기 로드 시 예상되는 에러이므로 토스트 안 띄움
+          showToast = false;
+          logoutMessage = "인증이 필요합니다.";
+        } else {
+          logoutMessage = errorData?.error?.message || "인증 정보가 유효하지 않습니다.";
+        }
+
+        handleLogout(logoutMessage, showToast);
+        return Promise.reject(error);
+      }
+
+      // C006 에러: 인증이 필요합니다 → 토큰 갱신 시도
+      if (errorCode !== "C006") {
+        // C006이 아닌 다른 401 에러는 그냥 reject
         return Promise.reject(error);
       }
 
