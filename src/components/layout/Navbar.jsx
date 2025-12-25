@@ -44,14 +44,9 @@ export default function Navbar() {
           {/* Right side: CTA Button */}
           <div className="hidden md:flex items-center space-x-4">
             {!isLoggedIn ? (
-              <>
-                <Link to="/signin">
-                  <Button variant="ghost">로그인</Button>
-                </Link>
-                <Link to="/signin">
-                  <Button>회원가입</Button>
-                </Link>
-              </>
+              <Link to="/signin">
+                <Button>로그인 / 회원가입</Button>
+              </Link>
             ) : (
               <UserMenu />
             )}
@@ -85,16 +80,9 @@ export default function Navbar() {
             </Link>
             <div className="flex flex-col space-y-2 pt-4">
               {!isLoggedIn ? (
-                <>
-                  <Link to="/signin">
-                    <Button variant="ghost" className="w-full">
-                      로그인
-                    </Button>
-                  </Link>
-                  <Link to="/signin">
-                    <Button className="w-full">회원가입</Button>
-                  </Link>
-                </>
+                <Link to="/signin">
+                  <Button className="w-full">로그인 / 회원가입</Button>
+                </Link>
               ) : (
                 <div className="flex justify-center">
                   <UserMenu />
