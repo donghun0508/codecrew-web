@@ -54,13 +54,13 @@ function RoadmapItem({ section, index, isLeft }) {
               className={`
                 absolute top-1/2 -translate-y-1/2 w-0 h-0
                 ${isLeft ? "-right-6" : "-left-6"}
+                ${color.text}
               `}
               style={{
                 borderTop: "24px solid transparent",
                 borderBottom: "24px solid transparent",
                 [isLeft ? "borderLeft" : "borderRight"]: `24px solid currentColor`,
               }}
-              className={color.text}
             />
 
             <div className="flex items-start gap-4">

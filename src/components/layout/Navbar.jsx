@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Code2, Menu, X, Map } from "lucide-react";
+import { Code2, Menu, X, Map, Globe } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -38,6 +38,13 @@ export default function Navbar() {
                 <Map className="w-5 h-5" />
                 <span>로드맵</span>
               </Link>
+              <Link
+                to="/world"
+                className="flex items-center gap-2 text-foreground/80 hover:text-foreground transition-colors"
+              >
+                <Globe className="w-5 h-5" />
+                <span>World</span>
+              </Link>
             </div>
           </div>
 
@@ -73,10 +80,17 @@ export default function Navbar() {
             </Link>
             <Link
               to="/roadmap"
-              className="flex items-center gap-2 text-foreground/80 hover:text-foreground transition-colors py-2"
+              className="hidden flex items-center gap-2 text-foreground/80 hover:text-foreground transition-colors py-2"
             >
               <Map className="w-5 h-5" />
               <span>로드맵</span>
+            </Link>
+            <Link
+              to="/world"
+              className="flex items-center gap-2 text-foreground/80 hover:text-foreground transition-colors py-2"
+            >
+              <Globe className="w-5 h-5" />
+              <span>World</span>
             </Link>
             <div className="flex flex-col space-y-2 pt-4">
               {!isLoggedIn ? (
