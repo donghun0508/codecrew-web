@@ -1,5 +1,6 @@
 import axios from "axios";
 import toast from "react-hot-toast";
+import { refreshAccessToken } from "./keycloak";
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:20020",
@@ -74,37 +75,6 @@ api.interceptors.response.use(
       const errorData = error.response?.data;
       const errorCode = errorData?.error?.code;
 
-      // 초기 인증 체크 시에는 401 에러를 무시 (리다이렉트 안 함)
-      if (originalRequest.skipAuthRedirect) {
-        return Promise.reject(error);
-      }
-
-      // 토큰 갱신 API 자체가 실패한 경우 → 에러 코드별 처리
-      if (originalRequest.url?.includes("/api/v1/auth/tokens")) {
-        let logoutMessage;
-        let showToast = true;
-
-        // 에러 코드별 메시지 처리
-        if (errorCode === "T002") {
-          // INVALID_REFRESH_TOKEN
-          logoutMessage =
-            "비정상적인 로그인 시도가 감지되었습니다. 보안을 위해 로그아웃되었습니다.";
-        } else if (errorCode === "T003") {
-          // TOKEN_INVALID
-          logoutMessage = "다시 로그인해주세요.";
-        } else if (errorCode === "C006") {
-          // 초기 로드 시 예상되는 에러이므로 토스트 안 띄움
-          showToast = false;
-          logoutMessage = "인증이 필요합니다.";
-        } else {
-          logoutMessage =
-            errorData?.error?.message || "인증 정보가 유효하지 않습니다.";
-        }
-
-        handleLogout(logoutMessage, showToast);
-        return Promise.reject(error);
-      }
-
       // C006 에러: 인증이 필요합니다 → 토큰 갱신 시도
       if (errorCode !== "C006") {
         // C006이 아닌 다른 401 에러는 그냥 reject
@@ -131,13 +101,10 @@ api.interceptors.response.use(
           throw new Error("Refresh token not found");
         }
 
-        // 토큰 갱신 요청
-        const response = await api.post("/api/v1/auth/tokens", {
-          refreshToken,
-        });
-
-        const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
-          response.data?.data || {};
+        // Keycloak으로 토큰 갱신 요청
+        const tokenData = await refreshAccessToken(refreshToken);
+        const { access_token: newAccessToken, refresh_token: newRefreshToken } =
+          tokenData;
 
         if (!newAccessToken) {
           throw new Error("Failed to refresh token");
@@ -177,20 +144,6 @@ api.interceptors.response.use(
 
 export const authApi = {
   oauthLogin: (data) => api.post("/api/v1/oauth/login", data),
-  // tempToken을 위한 특별 처리: interceptor를 우회하고 명시적으로 전달
-  submitExtraInfo: (nickname, tempToken) =>
-    api.post(
-      "/api/v1/oauth/signup",
-      { nickname },
-      {
-        headers: {
-          Authorization: `Bearer ${tempToken}`,
-        },
-      }
-    ),
-  // Refresh token으로 새 토큰 발급
-  refreshTokens: (refreshToken) =>
-    api.post("/api/v1/auth/tokens", { refreshToken }),
 };
 
 export const memberApi = {
@@ -208,8 +161,43 @@ export const memberApi = {
 
     return api.get("/api/v1/members/me", config);
   },
-  checkDuplication: (value) =>
-    api.post("/api/v1/members/duplication-check", { value }),
+  // Keycloak 토큰으로 회원 확인 (회원가입 여부 체크)
+  verify: (keycloakAccessToken) =>
+    api.get("/api/v1/members/verify", {
+      headers: {
+        Authorization: `Bearer ${keycloakAccessToken}`,
+      },
+    }),
+  // 닉네임 중복 체크
+  checkDuplication: (value, keycloakAccessToken) => {
+    const config = {
+      headers: {},
+    };
+
+    if (keycloakAccessToken) {
+      config.headers.Authorization = `Bearer ${keycloakAccessToken}`;
+    }
+
+    return api.post(
+      "/api/v1/members/duplication-check",
+      {
+        type: "NICKNAME",
+        value,
+      },
+      config
+    );
+  },
+  // 회원 가입 (Keycloak 토큰 필요)
+  register: (nickname, keycloakAccessToken) =>
+    api.post(
+      "/api/v1/members",
+      { nickname },
+      {
+        headers: {
+          Authorization: `Bearer ${keycloakAccessToken}`,
+        },
+      }
+    ),
 };
 
 export const youtubeApi = {
@@ -220,4 +208,13 @@ export const youtubeApi = {
     }
     return api.get("/api/v1/youtube/videos", { params });
   },
+};
+
+export const worldApi = {
+  // 내 플레이어 정보 조회 (없으면 404)
+  getMyPlayer: () => api.get("/api/v1/players/me"),
+  // 캐릭터 등록 (REST API)
+  setCharacter: (characterData) => api.post("/api/v1/world-masters/players", characterData),
+  // 월드 배정 요청
+  matchWorld: (worldId) => api.post("/api/v1/world-masters/assignments", { worldId }),
 };

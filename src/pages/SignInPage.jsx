@@ -1,7 +1,7 @@
 import {
-  GOOGLE_AUTH_URL,
-  KAKAO_AUTH_URL,
-  NAVER_AUTH_URL,
+  KEYCLOAK_GOOGLE_AUTH_URL,
+  KEYCLOAK_KAKAO_AUTH_URL,
+  KEYCLOAK_NAVER_AUTH_URL,
 } from "../lib/constants/oauth";
 import { Code2 } from "lucide-react";
 import naverIcon from "../assets/social/naver.png";
@@ -9,22 +9,16 @@ import kakaoIcon from "../assets/social/kakao.png";
 import googleIcon from "../assets/social/google.svg";
 
 export default function SignInPage() {
-  const generateNonce = () => crypto.randomUUID();
-
   const handleGoogleLogin = () => {
-    window.location.href = `${GOOGLE_AUTH_URL}`;
+    window.location.href = KEYCLOAK_GOOGLE_AUTH_URL;
   };
 
   const handleKakaoLogin = () => {
-    const nonce = generateNonce();
-    const state = encodeURIComponent(btoa(JSON.stringify({ nonce })));
-    window.location.href = `${KAKAO_AUTH_URL}&nonce=${nonce}&state=${state}`;
+    window.location.href = KEYCLOAK_KAKAO_AUTH_URL;
   };
 
   const handleNaverLogin = () => {
-    const nonce = generateNonce();
-    const state = encodeURIComponent(btoa(JSON.stringify({ nonce })));
-    window.location.href = `${NAVER_AUTH_URL}&state=${state}`;
+    window.location.href = KEYCLOAK_NAVER_AUTH_URL;
   };
 
   return (

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Code2 } from "lucide-react";
 import confetti from "canvas-confetti";
 import toast from "react-hot-toast";
-import { authApi, memberApi } from "../api/auth";
+import { memberApi } from "../api/auth";
 import { validateNickname } from "../lib/utils/validation";
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from "../lib/constants/messages";
 import Spinner from "../components/common/Spinner";
@@ -38,9 +38,20 @@ export default function SignUpExtraPage() {
       return;
     }
 
-    // 2. 중복 확인 API 호출
+    // 2. Keycloak 토큰 확인
+    const keycloakAccessToken = sessionStorage.getItem("keycloakAccessToken");
+    if (!keycloakAccessToken) {
+      toast.error(ERROR_MESSAGES.TOKEN_EXPIRED);
+      navigate("/signin");
+      return;
+    }
+
+    // 3. 중복 확인 API 호출
     try {
-      const res = await memberApi.checkDuplication(nickname.trim());
+      const res = await memberApi.checkDuplication(
+        nickname.trim(),
+        keycloakAccessToken
+      );
       const isDuplicated = res.data?.data?.duplicated;
 
       if (isDuplicated) {
@@ -65,38 +76,36 @@ export default function SignUpExtraPage() {
       return;
     }
 
-    // 2. tempToken 확인
-    const tempToken = sessionStorage.getItem("tempToken");
-    if (!tempToken) {
+    // 2. Keycloak 토큰 확인
+    const keycloakAccessToken = sessionStorage.getItem("keycloakAccessToken");
+    const keycloakRefreshToken = sessionStorage.getItem("keycloakRefreshToken");
+
+    if (!keycloakAccessToken) {
       toast.error(ERROR_MESSAGES.TOKEN_EXPIRED);
       navigate("/signin");
       return;
     }
 
-    // 3. 회원가입 API 호출
+    // 3. 회원가입 API 호출 (Keycloak 토큰 전달)
     try {
       setLoading(true);
-      const res = await authApi.submitExtraInfo(nickname.trim(), tempToken);
-      const payload = res.data?.data;
+      await memberApi.register(nickname.trim(), keycloakAccessToken);
 
-      if (payload?.accessToken) {
-        // 4. 사용자 정보 조회
-        const me = await memberApi.me(payload.accessToken);
-        const memberInfo = me.data?.data;
+      // 4. 사용자 정보 조회 (Keycloak 토큰으로)
+      const me = await memberApi.me(keycloakAccessToken);
+      const memberInfo = me.data?.data;
 
-        // 5. AuthContext의 login 함수 사용
-        login(payload.accessToken, payload.refreshToken, memberInfo);
+      // 5. AuthContext에 Keycloak 토큰 저장
+      login(keycloakAccessToken, keycloakRefreshToken, memberInfo);
 
-        // 6. tempToken 제거
-        sessionStorage.removeItem("tempToken");
+      // 6. 임시 토큰 제거
+      sessionStorage.removeItem("keycloakAccessToken");
+      sessionStorage.removeItem("keycloakRefreshToken");
 
-        // 7. confetti 효과와 함께 홈으로 이동
-        fireConfetti();
-        toast.success(SUCCESS_MESSAGES.SIGNUP_SUCCESS);
-        navigate("/");
-      } else {
-        toast.error(ERROR_MESSAGES.SIGNUP_FAILED);
-      }
+      // 7. confetti 효과와 함께 홈으로 이동
+      fireConfetti();
+      toast.success(SUCCESS_MESSAGES.SIGNUP_SUCCESS);
+      navigate("/");
     } catch (err) {
       const errorMessage =
         err?.response?.data?.error?.message || ERROR_MESSAGES.SIGNUP_FAILED;

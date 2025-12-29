@@ -1,5 +1,12 @@
-import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
 import { memberApi } from "@/api/auth";
+import { logoutFromKeycloak } from "@/api/keycloak";
 
 const AuthContext = createContext(null);
 
@@ -12,7 +19,16 @@ export function AuthProvider({ children }) {
   );
   const [userInfo, setUserInfo] = useState(() => {
     const stored = localStorage.getItem("userInfo");
-    return stored ? JSON.parse(stored) : null;
+    if (!stored || stored === "undefined" || stored === "null") {
+      return null;
+    }
+    try {
+      return JSON.parse(stored);
+    } catch (error) {
+      console.error("Failed to parse userInfo:", error);
+      localStorage.removeItem("userInfo");
+      return null;
+    }
   });
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -28,14 +44,24 @@ export function AuthProvider({ children }) {
     setUserInfo(memberInfo);
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    const currentRefreshToken = localStorage.getItem("refreshToken");
+
+    // Keycloak 세션 종료
+    if (currentRefreshToken) {
+      await logoutFromKeycloak(currentRefreshToken);
+    }
+
+    // 로컬 스토리지 정리
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("userInfo");
     setAccessToken(null);
     setRefreshToken(null);
     setUserInfo(null);
-    window.location.reload();
+
+    // 홈으로 이동
+    window.location.href = "/";
   }, []);
 
   // 앱 시작 시 토큰이 있으면 /me 호출해서 사용자 정보 최신화
@@ -55,14 +81,20 @@ export function AuthProvider({ children }) {
             setUserInfo(memberInfo);
           }
         } catch (error) {
-          // 401 에러 발생 시 만료된 토큰 제거
+          // 401 에러 발생 시 에러 코드 확인
           if (error.response?.status === 401) {
-            localStorage.removeItem("accessToken");
-            localStorage.removeItem("refreshToken");
-            localStorage.removeItem("userInfo");
-            setAccessToken(null);
-            setRefreshToken(null);
-            setUserInfo(null);
+            const errorCode = error.response?.data?.error?.code;
+
+            // Txx 에러 (토큰 자체 문제)만 토큰 제거
+            // C006 (인증 필요)는 토큰 갱신 가능하므로 유지
+            if (errorCode && errorCode.startsWith("T")) {
+              localStorage.removeItem("accessToken");
+              localStorage.removeItem("refreshToken");
+              localStorage.removeItem("userInfo");
+              setAccessToken(null);
+              setRefreshToken(null);
+              setUserInfo(null);
+            }
           }
           // 에러 발생해도 리다이렉트는 안 하고 현재 페이지 유지
         }
