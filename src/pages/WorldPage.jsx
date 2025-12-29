@@ -89,8 +89,8 @@ export default function WorldPage() {
       }
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   // 드래그 핸들러
@@ -98,8 +98,8 @@ export default function WorldPage() {
     if (!isDragging) return;
 
     // 드래그 중 스크롤 방지
-    document.body.style.overflow = 'hidden';
-    document.body.style.touchAction = 'none';
+    document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
 
     const handleDragMove = (e) => {
       e.preventDefault();
@@ -118,22 +118,22 @@ export default function WorldPage() {
 
     const handleDragEnd = () => {
       setIsDragging(false);
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
+      document.body.style.overflow = "";
+      document.body.style.touchAction = "";
     };
 
-    document.addEventListener('mousemove', handleDragMove);
-    document.addEventListener('mouseup', handleDragEnd);
-    document.addEventListener('touchmove', handleDragMove, { passive: false });
-    document.addEventListener('touchend', handleDragEnd);
+    document.addEventListener("mousemove", handleDragMove);
+    document.addEventListener("mouseup", handleDragEnd);
+    document.addEventListener("touchmove", handleDragMove, { passive: false });
+    document.addEventListener("touchend", handleDragEnd);
 
     return () => {
-      document.removeEventListener('mousemove', handleDragMove);
-      document.removeEventListener('mouseup', handleDragEnd);
-      document.removeEventListener('touchmove', handleDragMove);
-      document.removeEventListener('touchend', handleDragEnd);
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
+      document.removeEventListener("mousemove", handleDragMove);
+      document.removeEventListener("mouseup", handleDragEnd);
+      document.removeEventListener("touchmove", handleDragMove);
+      document.removeEventListener("touchend", handleDragEnd);
+      document.body.style.overflow = "";
+      document.body.style.touchAction = "";
     };
   }, [isDragging]);
 
@@ -264,7 +264,9 @@ export default function WorldPage() {
               {/* 월드 아이콘/썸네일 + 정보 */}
               <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0 w-full sm:w-auto">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-primary/30 flex-shrink-0 ring-2 ring-white">
-                  <span className="text-lg sm:text-xl font-bold text-white">W1</span>
+                  <span className="text-lg sm:text-xl font-bold text-white">
+                    W1
+                  </span>
                 </div>
 
                 {/* 월드 정보 */}
@@ -285,7 +287,9 @@ export default function WorldPage() {
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span>👤</span>
-                      <span className="truncate max-w-[100px] sm:max-w-none">{character?.nickname || "플레이어"}</span>
+                      <span className="truncate max-w-[100px] sm:max-w-none">
+                        {character?.nickname || "플레이어"}
+                      </span>
                     </div>
                     <div className="hidden sm:block px-2 py-0.5 bg-gray-100 rounded text-xs border border-gray-200">
                       🎮 메타버스
@@ -310,10 +314,12 @@ export default function WorldPage() {
         {/* 채팅 영역 - 모바일: 하단 슬라이드, 데스크톱: 우측 사이드바 */}
         {isChatOpen && (
           <div
-            className={`fixed bottom-0 left-0 right-0 lg:relative lg:inset-auto lg:w-96 bg-white lg:border-l border-gray-200 flex flex-col shadow-[0_-4px_16px_rgba(0,0,0,0.1)] lg:shadow-[-4px_0_16px_rgba(0,0,0,0.05)] z-30 rounded-t-2xl lg:rounded-none ${!isDragging ? 'transition-all duration-200' : ''}`}
+            className={`fixed bottom-0 left-0 right-0 lg:relative lg:inset-auto lg:w-96 bg-white lg:border-l border-gray-200 flex flex-col shadow-[0_-4px_16px_rgba(0,0,0,0.1)] lg:shadow-[-4px_0_16px_rgba(0,0,0,0.05)] z-30 rounded-t-2xl lg:rounded-none ${
+              !isDragging ? "transition-all duration-200" : ""
+            }`}
             style={{
-              height: isDesktop ? 'auto' : `${chatHeight}vh`,
-              maxHeight: isDesktop ? 'none' : '85vh'
+              height: isDesktop ? "auto" : `${chatHeight}vh`,
+              maxHeight: isDesktop ? "none" : "85vh",
             }}
           >
             {/* 드래그 핸들 (모바일만) */}
@@ -517,10 +523,13 @@ export default function WorldPage() {
 
                   {/* 텍스트 영역 */}
                   <div className="flex-1 overflow-hidden">
-                    <div className="text-xs text-gray-500 mb-0.5 font-medium">공지사항</div>
+                    <div className="text-xs text-gray-500 mb-0.5 font-medium">
+                      공지사항
+                    </div>
                     <div className="overflow-hidden">
                       <div className="whitespace-nowrap text-xs sm:text-sm text-gray-700 font-medium animate-marquee">
-                        CodeCrew World에 오신 것을 환영합니다! 다른 사용자들과 함께 즐거운 시간 보내세요 ✨
+                        CodeCrew World에 오신 것을 환영합니다! 다른 사용자들과
+                        함께 즐거운 시간 보내세요 ✨
                       </div>
                     </div>
                   </div>
@@ -533,15 +542,23 @@ export default function WorldPage() {
 
       {/* 공지사항 모달 */}
       {showNoticeModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4" onClick={() => setShowNoticeModal(false)}>
-          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4"
+          onClick={() => setShowNoticeModal(false)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-2xl max-w-md w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* 모달 헤더 */}
             <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary/10">
                   <span className="text-lg sm:text-xl">📢</span>
                 </div>
-                <h3 className="text-base sm:text-lg font-bold text-gray-900">공지사항</h3>
+                <h3 className="text-base sm:text-lg font-bold text-gray-900">
+                  공지사항
+                </h3>
               </div>
               <button
                 onClick={() => setShowNoticeModal(false)}
@@ -555,18 +572,25 @@ export default function WorldPage() {
             <div className="px-4 sm:px-6 py-5 sm:py-6">
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">환영합니다! 🎉</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">
+                    환영합니다! 🎉
+                  </h4>
                   <p className="text-sm text-gray-700 leading-relaxed">
-                    CodeCrew World에 오신 것을 환영합니다! 다른 사용자들과 함께 즐거운 시간 보내세요 ✨
+                    CodeCrew World에 오신 것을 환영합니다! 다른 사용자들과 함께
+                    즐거운 시간 보내세요 ✨
                   </p>
                 </div>
 
                 <div className="pt-3 border-t border-gray-100">
-                  <h4 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">이용 안내</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">
+                    이용 안내
+                  </h4>
                   <ul className="space-y-2 text-sm text-gray-700">
                     <li className="flex items-start gap-2">
                       <span className="text-primary mt-0.5">•</span>
-                      <span>실시간 채팅을 통해 다른 유저들과 소통할 수 있습니다</span>
+                      <span>
+                        실시간 채팅을 통해 다른 유저들과 소통할 수 있습니다
+                      </span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-primary mt-0.5">•</span>
