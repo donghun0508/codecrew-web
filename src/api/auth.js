@@ -216,5 +216,5 @@ export const worldApi = {
   // 캐릭터 등록 (REST API)
   setCharacter: (characterData) => api.post("/api/v1/world-masters/players", characterData),
   // 월드 배정 요청
-  matchWorld: (worldId) => api.post("/api/v1/world-masters/assignments", { worldId }),
+  matchWorld: (worldCode) => api.post("/api/v1/world-masters/assignments", { worldCode }),
 };

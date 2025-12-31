@@ -34,7 +34,7 @@ export default function WorldPage() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showNotice, setShowNotice] = useState(true);
   const [showNoticeModal, setShowNoticeModal] = useState(false);
-  const [chatHeight, setChatHeight] = useState(50); // vh 단위 (기본 50%)
+  const [chatHeight, setChatHeight] = useState(45); // vh 단위 (기본 45%)
   const [isDragging, setIsDragging] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
@@ -57,7 +57,14 @@ export default function WorldPage() {
           setShowCharacterSetup(true);
         }
       } catch (error) {
-        setShowCharacterSetup(true);
+        // 404 에러: 캐릭터 설정이 필요함
+        if (error.response?.status === 404) {
+          setShowCharacterSetup(true);
+        } else {
+          // 다른 에러는 콘솔에 로그만 남김
+          console.error("월드 배정 요청 실패:", error);
+          setShowCharacterSetup(true);
+        }
       } finally {
         setIsLoadingCharacter(false);
       }
@@ -85,7 +92,7 @@ export default function WorldPage() {
 
       // 데스크톱으로 전환되면 높이 리셋
       if (desktop) {
-        setChatHeight(50);
+        setChatHeight(45);
       }
     };
 
@@ -111,8 +118,8 @@ export default function WorldPage() {
       // 화면 하단에서 터치/마우스 위치까지의 높이를 vh로 계산
       const newHeight = ((windowHeight - clientY) / windowHeight) * 100;
 
-      // 최소 30vh, 최대 85vh로 제한
-      const clampedHeight = Math.max(30, Math.min(85, newHeight));
+      // 최소 30vh, 최대 60vh로 제한
+      const clampedHeight = Math.max(30, Math.min(60, newHeight));
       setChatHeight(clampedHeight);
     };
 
@@ -210,7 +217,12 @@ export default function WorldPage() {
       {/* Main Content - 전체 화면 */}
       <main className="flex-1 flex overflow-hidden lg:flex-row flex-col relative">
         {/* 메타버스 캔버스 영역 - 모바일에서는 전체 화면 */}
-        <div className="flex-1 flex flex-col lg:flex-col relative">
+        <div
+          className="flex-1 flex flex-col lg:flex-col relative transition-all duration-200"
+          style={{
+            height: !isDesktop && isChatOpen ? `calc(100vh - ${chatHeight}vh)` : 'auto'
+          }}
+        >
           {/* 상단 헤더 영역 - 모바일에서는 오버레이 */}
           <div className="lg:relative absolute top-0 left-0 right-0 z-20 bg-white/90 lg:bg-white backdrop-blur-sm lg:backdrop-blur-none border-b border-gray-200 px-2 sm:px-4 py-2 sm:py-3 shadow-sm">
             <div className="flex items-center justify-between">
@@ -249,17 +261,17 @@ export default function WorldPage() {
             </div>
           </div>
 
-          {/* 중간 메인 캔버스 영역 - 모바일에서는 absolute fill */}
-          <div className="flex-1 bg-gray-100 relative lg:relative absolute inset-0">
+          {/* 중간 메인 캔버스 영역 */}
+          <div className="flex-1 bg-gray-100 relative flex items-center justify-center">
             {/* 임시 콘텐츠 */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-300 text-center">
+            <div className="text-gray-300 text-center">
               <p className="text-4xl font-bold mb-2">메타버스 영역</p>
               <p className="text-xl">캔버스 구현 예정</p>
             </div>
           </div>
 
-          {/* 하단 메타데이터 영역 - 모바일에서는 오버레이 */}
-          <div className="lg:relative absolute bottom-0 left-0 right-0 z-20 bg-white/95 lg:bg-gray-50/50 backdrop-blur-md lg:backdrop-blur-none border-t border-gray-200 px-3 sm:px-4 md:px-6 py-3 md:py-4 shadow-[0_-2px_8px_rgba(0,0,0,0.05)]">
+          {/* 하단 메타데이터 영역 */}
+          <div className="bg-white lg:bg-gray-50/50 border-t border-gray-200 px-3 sm:px-4 md:px-6 py-3 md:py-4 shadow-[0_-2px_8px_rgba(0,0,0,0.05)] z-10 relative">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
               {/* 월드 아이콘/썸네일 + 정보 */}
               <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0 w-full sm:w-auto">
@@ -319,7 +331,7 @@ export default function WorldPage() {
             }`}
             style={{
               height: isDesktop ? "auto" : `${chatHeight}vh`,
-              maxHeight: isDesktop ? "none" : "85vh",
+              maxHeight: isDesktop ? "none" : "60vh",
             }}
           >
             {/* 드래그 핸들 (모바일만) */}

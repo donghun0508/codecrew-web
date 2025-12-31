@@ -38,7 +38,7 @@ export default function CharacterSetup({ onComplete }) {
 
     try {
       const characterData = {
-        worldId: "world#1",
+        worldCode: "world#1",
         avatarId: selectedCharacter.id,
         nickname: nickname.trim(),
       };
