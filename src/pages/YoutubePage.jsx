@@ -228,6 +228,21 @@ export default function YoutubePage() {
           <div className="flex justify-center items-center py-20">
             <Spinner />
           </div>
+        ) : videos.length === 0 && !loading && !error ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="relative mb-6">
+              <div className="absolute inset-0 bg-primary rounded-full blur-xl opacity-20"></div>
+              <div className="relative bg-muted p-6 rounded-full border-2 border-border">
+                <Youtube className="w-16 h-16 text-muted-foreground" />
+              </div>
+            </div>
+            <h3 className="text-2xl font-bold mb-3 text-gray-900">
+              영상이 없습니다
+            </h3>
+            <p className="text-muted-foreground text-center max-w-md">
+              아직 등록된 영상이 없습니다. 나중에 다시 확인해주세요.
+            </p>
+          </div>
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
