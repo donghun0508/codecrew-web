@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import {
@@ -38,6 +38,21 @@ export default function WorldPage() {
   const [isDragging, setIsDragging] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
+  // WebSocket 관련 상태
+  const wsRef = useRef(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [connectionUrl, setConnectionUrl] = useState(null);
+  const [isConnecting, setIsConnecting] = useState(false);
+
+  // 월드 데이터 상태
+  const [worldData, setWorldData] = useState(null);
+  const [noticeData, setNoticeData] = useState(null);
+  const [onlineCount, setOnlineCount] = useState(0);
+
+  // 채팅 상태
+  const [chatMessage, setChatMessage] = useState("");
+  const [chatAreaType] = useState("PRIVATE_AREA"); // "PUBLIC_AREA" or "PRIVATE_AREA"
+
   // 월드 배정 요청
   useEffect(() => {
     const matchWorld = async () => {
@@ -53,6 +68,11 @@ export default function WorldPage() {
         if (worldData) {
           setCharacter(worldData);
           setShowCharacterSetup(false);
+
+          // WebSocket 연결 정보 저장
+          if (worldData.connectionUrl) {
+            setConnectionUrl(worldData.connectionUrl);
+          }
         } else {
           setShowCharacterSetup(true);
         }
@@ -77,6 +97,138 @@ export default function WorldPage() {
     setCharacter(characterData);
     setShowCharacterSetup(false);
   };
+
+  // 채팅 메시지 전송
+  const sendChatMessage = () => {
+    if (!chatMessage.trim() || !wsRef.current || !isConnected) return;
+
+    const message = {
+      message: chatMessage.trim(),
+      chatAreaType: chatAreaType,
+    };
+
+    try {
+      wsRef.current.send(JSON.stringify(message));
+      setChatMessage("");
+    } catch (error) {
+      console.error("메시지 전송 실패:", error);
+    }
+  };
+
+  // Enter 키로 메시지 전송
+  const handleChatKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendChatMessage();
+    }
+  };
+
+  // WebSocket 연결
+  useEffect(() => {
+    if (!connectionUrl) return;
+
+    setIsConnecting(true);
+
+    const connectWebSocket = () => {
+      try {
+        const ws = new WebSocket(connectionUrl);
+        wsRef.current = ws;
+
+        ws.onopen = () => {
+          setIsConnected(true);
+          setIsConnecting(false);
+        };
+
+        ws.onmessage = (event) => {
+          console.log("WebSocket 메시지:", event.data);
+
+          try {
+            const message = JSON.parse(event.data);
+
+            // INITIAL_SYNC 메시지 처리
+            if (message.type === "INITIAL_SYNC") {
+              const { payload } = message;
+
+              // 월드 정보 업데이트
+              if (payload.world) {
+                setWorldData(payload.world);
+              }
+
+              // 공지사항 업데이트
+              if (payload.notice) {
+                setNoticeData(payload.notice);
+              }
+
+              // 접속자 수 업데이트
+              if (payload.online) {
+                setOnlineCount(payload.online.currentOnline);
+              }
+            }
+
+            // TODO: 다른 메시지 타입 처리
+          } catch (error) {
+            console.error("메시지 파싱 실패:", error);
+          }
+        };
+
+        ws.onerror = () => {
+          setIsConnected(false);
+          setIsConnecting(false);
+        };
+
+        ws.onclose = (event) => {
+          setIsConnected(false);
+          setIsConnecting(false);
+
+          // 정상 종료가 아닌 경우 에러 처리
+          if (!event.wasClean) {
+            // Close code에 따라 에러 처리
+            if (event.code === 1008 || event.code === 4001 || event.code === 4401) {
+              // 인증 실패 (Policy Violation, Custom Unauthorized)
+              navigate("/error/connection", {
+                state: {
+                  type: "unauthorized",
+                  message: event.reason || "인증에 실패했습니다. 토큰을 확인해주세요.",
+                  code: event.code
+                }
+              });
+            } else if (event.code === 1006) {
+              // 비정상 종료 (서버 응답 없음)
+              navigate("/error/connection", {
+                state: {
+                  type: "connection",
+                  message: "서버에 연결할 수 없습니다.",
+                  code: event.code
+                }
+              });
+            } else {
+              // 기타 에러
+              navigate("/error/connection", {
+                state: {
+                  type: "unknown",
+                  message: event.reason || "연결에 실패했습니다.",
+                  code: event.code
+                }
+              });
+            }
+          }
+        };
+      } catch {
+        setIsConnecting(false);
+        navigate("/error/connection");
+      }
+    };
+
+    connectWebSocket();
+
+    // 컴포넌트 언마운트 시 WebSocket 연결 해제
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+    };
+  }, [connectionUrl, navigate]);
 
   // 채팅 높이 드래그 조절 핸들러
   const handleDragStart = (e) => {
@@ -192,7 +344,10 @@ export default function WorldPage() {
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
         <main className="flex-1 flex items-center justify-center pt-16">
-          <Spinner />
+          <div className="text-center space-y-4">
+            <Spinner />
+            <p className="text-sm text-gray-600">월드 정보를 불러오는 중...</p>
+          </div>
         </main>
         <Footer />
       </div>
@@ -207,6 +362,22 @@ export default function WorldPage() {
         <div className="flex-1 pt-16">
           <CharacterSetup onComplete={handleCharacterSetupComplete} />
         </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // WebSocket 연결 중
+  if (isConnecting || (connectionUrl && !isConnected)) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center pt-16">
+          <div className="text-center space-y-4">
+            <Spinner />
+            <p className="text-sm text-gray-600">월드 서버에 연결하는 중...</p>
+          </div>
+        </main>
         <Footer />
       </div>
     );
@@ -234,8 +405,8 @@ export default function WorldPage() {
                 </div>
                 <div className="text-gray-700 px-2 sm:px-3 py-1 text-xs font-semibold flex items-center gap-1 sm:gap-1.5">
                   <Users className="w-3 h-3" />
-                  <span className="hidden sm:inline">0명 접속중</span>
-                  <span className="sm:hidden">0명</span>
+                  <span className="hidden sm:inline">{onlineCount}명 접속중</span>
+                  <span className="sm:hidden">{onlineCount}명</span>
                 </div>
               </div>
 
@@ -284,13 +455,13 @@ export default function WorldPage() {
                 {/* 월드 정보 */}
                 <div className="flex-1 min-w-0">
                   <h2 className="text-gray-900 font-bold text-sm sm:text-base lg:text-lg mb-0.5">
-                    CodeCrew World #1
+                    {worldData?.worldName || "CodeCrew World"}
                   </h2>
                   <div className="flex items-center gap-2 sm:gap-4 text-xs text-gray-600 flex-wrap">
                     <div className="flex items-center gap-1.5">
                       <Users className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">0명 시청중</span>
-                      <span className="sm:hidden">0명</span>
+                      <span className="hidden sm:inline">{onlineCount}명 시청중</span>
+                      <span className="sm:hidden">{onlineCount}명</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <Clock className="w-3.5 h-3.5" />
@@ -426,7 +597,7 @@ export default function WorldPage() {
                   <div className="flex items-center gap-2 py-2 mb-3">
                     <Users className="w-3.5 h-3.5 text-gray-600" />
                     <span className="text-xs font-medium text-gray-900">
-                      0명 참여중
+                      {onlineCount}명 참여중
                     </span>
                   </div>
 
@@ -448,13 +619,17 @@ export default function WorldPage() {
                   <input
                     type="text"
                     placeholder="채팅을 입력하세요"
-                    disabled
+                    value={chatMessage}
+                    onChange={(e) => setChatMessage(e.target.value)}
+                    onKeyDown={handleChatKeyDown}
+                    disabled={!isConnected}
                     className="w-full px-3 sm:px-4 pr-14 sm:pr-18 py-3 sm:py-4 rounded-lg bg-white border-2 border-gray-200 text-gray-900 text-xs focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed placeholder:text-gray-400 shadow-sm"
                   />
 
                   {/* 인풋 안: 전송 버튼 */}
                   <button
-                    disabled
+                    onClick={sendChatMessage}
+                    disabled={!isConnected || !chatMessage.trim()}
                     className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-primary hover:bg-primary/90 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
                     title="전송"
                   >
@@ -540,8 +715,7 @@ export default function WorldPage() {
                     </div>
                     <div className="overflow-hidden">
                       <div className="whitespace-nowrap text-xs sm:text-sm text-gray-700 font-medium animate-marquee">
-                        CodeCrew World에 오신 것을 환영합니다! 다른 사용자들과
-                        함께 즐거운 시간 보내세요 ✨
+                        {noticeData?.body || "공지사항이 없습니다."}
                       </div>
                     </div>
                   </div>
@@ -585,11 +759,10 @@ export default function WorldPage() {
               <div className="space-y-4">
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">
-                    환영합니다! 🎉
+                    {noticeData?.title || "공지사항"}
                   </h4>
                   <p className="text-sm text-gray-700 leading-relaxed">
-                    CodeCrew World에 오신 것을 환영합니다! 다른 사용자들과 함께
-                    즐거운 시간 보내세요 ✨
+                    {noticeData?.body || "공지사항이 없습니다."}
                   </p>
                 </div>
 

@@ -12,6 +12,9 @@ import GoogleOAuthCallback from './pages/oauth/GoogleOAuthCallback'
 import KakaoOAuthCallback from './pages/oauth/KakaoOAuthCallback'
 import NaverOAuthCallback from './pages/oauth/NaverOAuthCallback'
 import KeycloakOAuthCallback from './pages/oauth/KeycloakOAuthCallback'
+import NotFoundPage from './pages/errors/NotFoundPage'
+import ServerErrorPage from './pages/errors/ServerErrorPage'
+import ConnectionErrorPage from './pages/errors/ConnectionErrorPage'
 
 function App() {
   return (
@@ -30,6 +33,11 @@ function App() {
           <Route path="/oauth2/code/kakao" element={<KakaoOAuthCallback />} />
           <Route path="/oauth2/code/naver" element={<NaverOAuthCallback />} />
           <Route path="/oauth/callback" element={<KeycloakOAuthCallback />} />
+
+          {/* Error Pages */}
+          <Route path="/error/server" element={<ServerErrorPage />} />
+          <Route path="/error/connection" element={<ConnectionErrorPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
